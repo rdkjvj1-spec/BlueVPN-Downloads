@@ -1,0 +1,26 @@
+name: Publish BlueVPN QA build 185
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-qa185.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  upload-qa185:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download exact APK from test transfer
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --retry-delay 3 --connect-timeout 20 --max-time 240 -o BlueVPN-build185-debug.apk 'https://stud-computer-cutting-incidents.trycloudflare.com/26127fcefe8346e187be2eb0/BlueVPN-build185-debug.apk'
+          echo '3aa32f382d163bc054cdac30c97d45d688554652eab89603856689232d893060  BlueVPN-build185-debug.apk' | sha256sum --check
+      - name: Create public QA release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create v2.6.25-qa185 BlueVPN-build185-debug.apk --repo '${{ github.repository }}' --title 'BlueVPN 2.6.25 - QA build 185' --notes 'Debug APK for internal Android testing only. Build 185; not verified for public production release.' --prerelease
